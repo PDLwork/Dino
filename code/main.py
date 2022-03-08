@@ -3,7 +3,7 @@ import sys
 import os
 
 #获取当前文件的目录，方便在别的电脑运行时读取相应文件
-Current_path = os.path.join(os.getcwd(), 'pygame', 'dragon', 'picture')
+Current_path = os.path.join(os.getcwd(), 'picture')
 Current_path = Current_path.replace('\\', '/')
 
 pygame.init()  # 初始化pygame
