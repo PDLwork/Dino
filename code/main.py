@@ -11,41 +11,32 @@ Current_path = Current_path.replace('\\', '/')
 class Dragon:
     #小恐龙的默认参数
     def __init__(self):
-        self.dragon_rectangle = pygame.Rect(50, 210, 40, 45)    #小恐龙的边框,预先设计好就不需要移动到地上
+        self.rectangle = pygame.Rect(50, 210, 40, 45)    #小恐龙的边框,预先设计好就不需要移动到地上
         #定义小恐龙的两种状态(读取图片放在列表里)
-        self.dargen_status = [
+        self.status = [
             pygame.image.load(Current_path + '/dragon1.png'),
             pygame.image.load(Current_path + '/dragon2.png')
         ]
-        self.dragon_Y_axis = 210    #小恐龙所在Y轴坐标
-        self.dragon_jump_flag = False   #跳跃标志，判断小恐龙是否跳跃
-        self.dragon_jump_speed = 0  #小恐龙的跳跃速度，当为正的时候上升，为负的时候下降
-        self.dragon_alive = True    #生命状态，默认为活着
-        self.dragon_jump_permission = True #小恐龙的跳跃权限，如果在空中时不给跳跃
-        
+        self.Y_axis = 210    #小恐龙所在Y轴坐标
+        self.jump_flag = False   #跳跃标志，判断小恐龙是否跳跃
+        self.jump_speed = 0  #小恐龙的跳跃速度，当为正的时候上升，为负的时候下降
+        self.alive = True    #生命状态，默认为活着
+        self.jump_permission = True #小恐龙的跳跃权限，如果在空中时不给跳跃
 
     #更新小恐龙的状态
     def dragon_update(self):
-        if self.dragon_jump_flag:   #如果检测到按下跳跃
-            self.dragon_jump_speed = 10 #将上升速度调为10
-            self.dragon_jump_permission = False     #跳跃期间不给小恐龙再次跳跃
-            self.dragon_jump_flag = False   #设置好后回复默认值等待下次跳跃
-        if self.dragon_jump_speed != 0:   #如果小恐龙的跳跃速度不为0
-            self.dragon_Y_axis -= self.dragon_jump_speed    #移动小恐龙的Y坐标
-            if self.dragon_Y_axis > 210:    #防止将小恐龙移动到地下
-                self.dragon_Y_axis = 210
-                self.dragon_jump_permission = True  #回到地上，允许跳跃
-            self.dragon_rectangle[1] = self.dragon_Y_axis   #将框真正移动
-        if self.dragon_jump_permission == False:    #如果此时不允许跳跃，即正在跳跃过程中
-            self.dragon_jump_speed -= 1 #将速度降低，效果为上升越来越慢，下降越来越快
-
-            
-
-
-
-
-
-
+        if self.jump_flag:   #如果检测到按下跳跃
+            self.jump_speed = 10 #将上升速度调为10
+            self.jump_permission = False     #跳跃期间不给小恐龙再次跳跃
+            self.jump_flag = False   #设置好后回复默认值等待下次跳跃
+        if self.jump_speed != 0:   #如果小恐龙的跳跃速度不为0，说明正在跳跃周期
+            self.Y_axis -= self.jump_speed    #移动小恐龙的Y坐标
+            if self.Y_axis > 210:    #防止将小恐龙移动到地下
+                self.Y_axis = 210
+                self.jump_permission = True  #回到地上，允许跳跃
+            self.rectangle[1] = self.Y_axis   #将框真正移动
+        if self.jump_permission == False:    #如果此时不允许跳跃，即正在跳跃过程中
+            self.jump_speed -= 1 #将速度降低，效果为上升越来越慢，下降越来越快
 
 pygame.init()  # 初始化pygame
 size = width, height = 734, 286  # 设置窗口大小
@@ -58,11 +49,7 @@ backgroundrect1 = background1.get_rect()  # 获取矩形区域
 backgroundrect2 = background2.get_rect()  # 获取矩形区域
 backgroundrect2[0] = backgroundrect1.right
 
-dragon1 = pygame.image.load(Current_path + '/dragon1.png')
-dragon2 = pygame.image.load(Current_path + '/dragon2.png')
-dragonrect = dragon1.get_rect()
-dragonrect = dragonrect.move(50, 210)    #将小恐龙移动到“地上”
-print(dragonrect)
+dragon = Dragon()
 
 # 定义一个更新画面的函数（这样做可能更合理）
 flag = True #创建一个flag标志用于在循环中判断使用哪张图片
@@ -75,20 +62,20 @@ def map_update():
     global flag
     #根据flag标志确定显示的图片，这样可以造成小恐龙在跑的现象
     if flag == True:
-        screen.blit(dragon1, dragonrect)
+        screen.blit(dragon.status[0], dragon.rectangle)
     else:
-        screen.blit(dragon2, dragonrect)
+        screen.blit(dragon.status[1], dragon.rectangle)
     flag = not flag
 
 while True:  # 死循环确保窗口一直显示
-    clock.tick(6)
+    clock.tick(20)
     dragon_jump = False
     for event in pygame.event.get():  # 遍历所有事件
         if event.type == pygame.QUIT:  # 如果程序发现单击关闭窗口按钮
             sys.exit()  # 将窗口关闭
         if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-            dragon_jump = True
-            up_times = 10
+            if dragon.jump_permission:
+                dragon.jump_flag = True
 
     backgroundrect1 = backgroundrect1.move(-10, 0)    #将背景向左移动
     backgroundrect2 = backgroundrect2.move(-10, 0)    #将背景向左移动
@@ -97,18 +84,10 @@ while True:  # 死循环确保窗口一直显示
     if backgroundrect2.right < 0:   #和上面同理，最终实现的效果就是两个图片排着队从窗口前划过
         backgroundrect2[0] = backgroundrect1.right
 
-    if dragon_jump:
-        if up_times > 5:
-            dragonrect = dragonrect.move(0, -50)
-            map_update()
-
-        if up_times > 0:
-            dragonrect = dragonrect.move(0, 50)
-            map_update()
-        if up_times == 0:
-            dragon_jump = False
-        up_times -= 1
-
+    dragon.dragon_update()
     map_update()
 
     pygame.display.flip()  # 更新全部显示
+
+if __name__ == "__main__":
+    pass
