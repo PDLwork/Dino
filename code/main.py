@@ -1,4 +1,3 @@
-#开发者：庞德霖、谢泉生
 import pygame
 import sys
 
@@ -42,7 +41,7 @@ class Map:
         self.speed = 3
         self.background_1 = pygame.image.load('./picture/background1.png')  # 加载图片
         self.background_2 = pygame.image.load('./picture/background2.png')
-        self.background_rectangle_1 = self.background_1.get_rect()    # 获取矩形区域
+        self.background_rectangle_1 = self.background_1.get_rect()    # 获取图片大小的矩形区域
         self.background_rectangle_2 = self.background_2.get_rect()
         self.background_rectangle_2[0] = self.background_rectangle_1.right
 
@@ -89,17 +88,19 @@ def screen_update(jump_permission):
         screen.blit(dragon.status[0], dragon.rectangle)
         screen.blit(dragon.status[1], dragon.rectangle) 
 
-
 #主程序
 if __name__ == "__main__":
+    "-------------------------------初始化部分-------------------------------"
     pygame.init()  # 初始化pygame
     screen = pygame.display.set_mode([734, 286])  # 创建并显示窗口
+    pygame.display.set_caption('Dino')  #设置窗口标题
     clock = pygame.time.Clock() #创建一个时间对象用于控制游戏运作的快慢
 
     map = Map()     #创建地图实例
     dragon = Dragon()   #创建小恐龙实例
     score = 0   #设置初始分数
 
+    "-------------------------------主循环部分-------------------------------"
     while True:  # 死循环确保窗口一直显示
         clock.tick(60)      #越大越快
         for event in pygame.event.get():  # 遍历所有事件
@@ -110,7 +111,7 @@ if __name__ == "__main__":
                     dragon.jump_flag = True
 
         map.update()    #更新地图元素框的位置
-        dragon.update()     ##更新小恐龙元素框的位置
+        dragon.update()     #更新小恐龙元素框的位置
         screen_update(dragon.jump_permission)   #根据框显示图片
 
         #这部分暂时测试用 现在背景的移动速度和时间成正比
