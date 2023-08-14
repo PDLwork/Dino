@@ -1,5 +1,4 @@
 import pygame
-import sys
 
 '''定义一个小恐龙的类'''
 class Dragon:
@@ -92,8 +91,8 @@ def screen_update(jump_permission):
 if __name__ == "__main__":
     "-------------------------------初始化部分-------------------------------"
     pygame.init()  # 初始化pygame
-    screen = pygame.display.set_mode([734, 286])  # 创建并显示窗口
     pygame.display.set_caption('Dino')  #设置窗口标题
+    screen = pygame.display.set_mode([734, 286])  # 创建并显示窗口，设置这个大小是因为一张背景图就是这么大
     clock = pygame.time.Clock() #创建一个时间对象用于控制游戏运作的快慢
 
     map = Map()     #创建地图实例
@@ -101,11 +100,12 @@ if __name__ == "__main__":
     score = 0   #设置初始分数
 
     "-------------------------------主循环部分-------------------------------"
-    while True:  # 死循环确保窗口一直显示
+    running = True
+    while running:  # 死循环确保窗口一直显示
         clock.tick(60)      #越大越快
         for event in pygame.event.get():  # 遍历所有事件
             if event.type == pygame.QUIT:  # 如果程序发现单击关闭窗口按钮
-                sys.exit()  # 将窗口关闭
+                running = False
             if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 if dragon.jump_permission:  #如果检测到按键按下并且当前允许跳跃
                     dragon.jump_flag = True
@@ -120,3 +120,5 @@ if __name__ == "__main__":
             map.speed += 0.5
 
         pygame.display.flip()  # 更新全部显示
+
+    pygame.quit()
