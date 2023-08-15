@@ -1,9 +1,10 @@
 import pygame
 
-'''定义一个小恐龙的类'''
+'''-------------------------------定义一个小恐龙的类-------------------------------'''
 class Dragon:
     #小恐龙的默认参数
-    def __init__(self):
+    def __init__(self, Screen):
+        self.screen = Screen
         self.rectangle = pygame.Rect(50, 210, 40, 45)    #小恐龙的边框,预先设计好就不需要移动到地上
         #定义小恐龙的两种状态(读取图片放在列表里)
         self.status = [
@@ -11,15 +12,15 @@ class Dragon:
             pygame.image.load('./picture/dragon2.png')
         ]
         self.Y_axis = 210    #小恐龙所在Y轴坐标
-        self.jump_flag = False   #跳跃标志，判断小恐龙是否跳跃
         self.jump_speed = 0  #小恐龙的跳跃速度，当为正的时候上升，为负的时候下降
-        self.alive = True    #生命状态，默认为活着
+        self.alive = True    #生命状态
+        self.jump_flag = False   #跳跃标志，判断小恐龙是否跳跃
         self.jump_permission = True #小恐龙的跳跃权限，如果在空中时不给跳跃
 
     #更新小恐龙的状态
     def update(self):
         if self.jump_flag:   #如果检测到按下跳跃
-            self.jump_speed = 15 #将上升速度调为10
+            self.jump_speed = 15 #将上升速度调为15
             self.jump_permission = False     #跳跃期间不给小恐龙再次跳跃
             self.jump_flag = False   #设置好后回复默认值等待下次跳跃
 
@@ -33,11 +34,12 @@ class Dragon:
         if self.jump_permission == False:    #如果此时不允许跳跃，即正在跳跃过程中
             self.jump_speed -= 1 #将速度降低，效果为上升越来越慢，下降越来越快
 
-'''定义一个地图的类'''
+'''-------------------------------定义一个地图的类-------------------------------'''
 class Map:
     #默认参数
-    def __init__(self):
-        self.speed = 3
+    def __init__(self, Screen):
+        self.screen = Screen
+        self.speed = 3  #初始速度（像素）
         self.background_1 = pygame.image.load('./picture/background1.png')  # 加载图片
         self.background_2 = pygame.image.load('./picture/background2.png')
         self.background_rectangle_1 = self.background_1.get_rect()    # 获取图片大小的矩形区域
@@ -45,25 +47,23 @@ class Map:
         self.background_rectangle_2[0] = self.background_rectangle_1.right
 
     def update(self):
-        self.background_rectangle_1 = self.background_rectangle_1.move(-self.speed, 0)    #将背景向左移动
+        #移动框
+        self.background_rectangle_1 = self.background_rectangle_1.move(-self.speed, 0)
         self.background_rectangle_2 = self.background_rectangle_2.move(-self.speed, 0)
+
         if self.background_rectangle_1.right < 0:   #判断第一个背景框如果移动到了窗口外面
             self.background_rectangle_1[0] = self.background_rectangle_2.right  #将第一个背景框移动到第二个背景框后面，形成循环
         if self.background_rectangle_2.right < 0:   #和上面同理，最终实现的效果就是两个图片排着队从窗口前划过
             self.background_rectangle_2[0] = self.background_rectangle_1.right
 
+        #将图片放到框里面
+        self.screen.blit(self.background_1, self.background_rectangle_1)
+        self.screen.blit(self.background_2, self.background_rectangle_2)
+
 # 定义一个更新画面的函数（这样做可能更合理）
 flag = True #创建一个flag标志用于在循环中判断使用哪张图片
 count = 0
 def screen_update(jump_permission):
-    '''更新背景'''
-    screen.blit(map.background_1, map.background_rectangle_1)  # 将背景图片画到窗口上
-    screen.blit(map.background_2, map.background_rectangle_2)
-
-    # bird = pygame.image.load('./picture/bird1.png')
-    # bird_rectangle = pygame.Rect(100, 100, 40, 40)
-    # screen.blit(bird, bird_rectangle)
-
     global count
     count += 1
     count %= 100
@@ -95,8 +95,8 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode([734, 286])  # 创建并显示窗口，设置这个大小是因为一张背景图就是这么大
     clock = pygame.time.Clock() #创建一个时间对象用于控制游戏运作的快慢
 
-    map = Map()     #创建地图实例
-    dragon = Dragon()   #创建小恐龙实例
+    map = Map(screen)     #创建地图实例
+    dragon = Dragon(screen)   #创建小恐龙实例
     score = 0   #设置初始分数
 
     "-------------------------------主循环部分-------------------------------"
