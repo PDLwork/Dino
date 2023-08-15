@@ -2,41 +2,56 @@ import pygame
 
 '''-------------------------------定义一个小恐龙的类-------------------------------'''
 class Dragon:
-    #小恐龙的默认参数
+    #实例化的时候需要输入创建的游戏窗口对象
     def __init__(self, Screen):
+        #小恐龙的默认参数
         self.screen = Screen
         self.rectangle = pygame.Rect(50, 210, 40, 45)    #小恐龙的边框,预先设计好就不需要移动到地上
+        self.status = True #两种状态对应两个图片
         #定义小恐龙的两种状态(读取图片放在列表里)
-        self.status = [
+        self.StatusPicture = [
             pygame.image.load('./picture/dragon1.png'),
             pygame.image.load('./picture/dragon2.png')
         ]
-        self.Y_axis = 210    #小恐龙所在Y轴坐标
         self.jump_speed = 0  #小恐龙的跳跃速度，当为正的时候上升，为负的时候下降
         self.alive = True    #生命状态
         self.jump_flag = False   #跳跃标志，判断小恐龙是否跳跃
-        self.jump_permission = True #小恐龙的跳跃权限，如果在空中时不给跳跃
+        self.count = 0
 
     #更新小恐龙的状态
     def update(self):
-        if self.jump_flag:   #如果检测到按下跳跃
+        #如果当前没有检测到跳跃且小恐龙在地上,轮流显示图片
+        if self.jump_flag == False and self.rectangle[1] == 210:
+            if self.count % 15 == 0:    #控制小恐龙踏步速度
+                self.status = not self.status
+            #轮流显示图片，这样可以造成小恐龙在跑的现象
+            if self.status:
+                screen.blit(self.StatusPicture[0], self.rectangle)
+            else:
+                screen.blit(self.StatusPicture[1], self.rectangle)
+            self.count += 1
+            self.count %= 10000  #防止溢出
+
+        #如果检测到按下跳跃并且小恐龙在地上那就判定为有效跳跃
+        if self.jump_flag and self.rectangle[1] == 210:
             self.jump_speed = 15 #将上升速度调为15
-            self.jump_permission = False     #跳跃期间不给小恐龙再次跳跃
-            self.jump_flag = False   #设置好后回复默认值等待下次跳跃
 
-        if self.jump_speed != 0:   #如果小恐龙的跳跃速度不为0，说明正在跳跃周期
-            self.Y_axis -= self.jump_speed    #移动小恐龙的Y坐标
-            if self.Y_axis > 210:    #防止将小恐龙移动到地下
-                self.Y_axis = 210
-                self.jump_permission = True  #回到地上，允许跳跃
-            self.rectangle[1] = self.Y_axis   #将框真正移动
-
-        if self.jump_permission == False:    #如果此时不允许跳跃，即正在跳跃过程中
+        #如果小恐龙的跳跃速度不为0，或者当前在空中，说明正在跳跃周期
+        if self.jump_speed != 0 or self.rectangle[1] != 210:
+            self.rectangle[1] -= self.jump_speed   #将小恐龙框移动
             self.jump_speed -= 1 #将速度降低，效果为上升越来越慢，下降越来越快
+            if self.rectangle[1] >= 210:    #防止将小恐龙移动到地下
+                #落地后恢复默认值等待下次跳跃
+                self.Y_axis = 210
+                self.jump_speed = 0
+                self.jump_flag = False
+            #如果在空中那就显示两个图片，效果就是两个脚都伸直（没有太大意义）
+            self.screen.blit(self.StatusPicture[0], self.rectangle)
+            self.screen.blit(self.StatusPicture[1], self.rectangle)   
 
 '''-------------------------------定义一个地图的类-------------------------------'''
 class Map:
-    #默认参数
+    #实例化的时候需要输入创建的游戏窗口对象
     def __init__(self, Screen):
         self.screen = Screen
         self.speed = 3  #初始速度（像素）
@@ -60,33 +75,6 @@ class Map:
         self.screen.blit(self.background_1, self.background_rectangle_1)
         self.screen.blit(self.background_2, self.background_rectangle_2)
 
-# 定义一个更新画面的函数（这样做可能更合理）
-flag = True #创建一个flag标志用于在循环中判断使用哪张图片
-count = 0
-def screen_update(jump_permission):
-    global count
-    count += 1
-    count %= 100
-
-    if jump_permission:     #这个if语句是实现小恐龙踏步的
-        if count % 15 == 0:     #为了控制小恐龙踏步的速度
-            '''更新小恐龙'''
-            global flag
-            #根据flag标志确定显示的图片，这样可以造成小恐龙在跑的现象
-            if flag == True:
-                screen.blit(dragon.status[0], dragon.rectangle)
-            else:
-                screen.blit(dragon.status[1], dragon.rectangle)
-            flag = not flag
-        else:
-            if flag == True:
-                screen.blit(dragon.status[0], dragon.rectangle)
-            else:
-                screen.blit(dragon.status[1], dragon.rectangle)
-    else:   #如果在空中那就显示两个图片，效果就是两个脚都平行（没有太大意义）
-        screen.blit(dragon.status[0], dragon.rectangle)
-        screen.blit(dragon.status[1], dragon.rectangle) 
-
 #主程序
 if __name__ == "__main__":
     "-------------------------------初始化部分-------------------------------"
@@ -107,12 +95,10 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:  # 如果程序发现单击关闭窗口按钮
                 running = False
             if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                if dragon.jump_permission:  #如果检测到按键按下并且当前允许跳跃
-                    dragon.jump_flag = True
+                dragon.jump_flag = True
 
         map.update()    #更新地图元素框的位置
         dragon.update()     #更新小恐龙元素框的位置
-        screen_update(dragon.jump_permission)   #根据框显示图片
 
         #这部分暂时测试用 现在背景的移动速度和时间成正比
         score += 1
